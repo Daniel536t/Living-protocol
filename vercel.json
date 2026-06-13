@@ -4,6 +4,7 @@
     { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/static/(.*)", "dest": "http://100.52.204.169:8080/static/$1" },
     { "src": "/x402/(.*)", "dest": "http://100.52.204.169:8080/x402/$1" },
     { "src": "/query-vault", "dest": "http://100.52.204.169:8080/query-vault" },
     { "src": "/venice/(.*)", "dest": "http://100.52.204.169:8080/venice/$1" },
