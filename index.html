@@ -265,7 +265,7 @@ function openAgentModal(n, r, t, c) {
 }
 
 function openVault() {
-  fetch('http://100.52.204.169:8080/query-vault').then(function(r) { return r.json(); }).then(function(d) {
+  fetch('http://100.52.204.169:8081/query-vault').then(function(r) { return r.json(); }).then(function(d) {
     if (d.patterns && d.patterns.length) {
       vaultEl.innerHTML = d.patterns.map(function(p) {
         return '<div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:1rem;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;"><div style="display:flex;flex-direction:column;gap:0.25rem;"><span style="font-size:0.7rem;color:#a5b4fc;font-weight:700;font-family:monospace;">' + (p.name || p.patternId || 'Pattern') + '</span></div><span style="font-size:0.65rem;color:#cbd5e1;font-family:monospace;">Used: ' + (p.successCount || '0') + 'x</span></div><div style="background:rgba(0,0,0,0.6);padding:0.75rem;border-radius:0.25rem;border:1px solid rgba(255,255,255,0.05);font-family:monospace;font-size:0.65rem;color:#cbd5e1;max-height:8rem;overflow-y:auto;">' + (p.description || '') + '<br>Tags: ' + (p.tags || []).join(', ') + '</div><div style="display:flex;gap:0.5rem;margin-top:0.75rem;"><button onclick="event.stopPropagation(); deployPattern()" style="padding:0.375rem 0.75rem;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:0.5rem;color:#818cf8;font-size:0.65rem;font-weight:700;">🚀 DEPLOY</button></div></div>';
@@ -309,7 +309,7 @@ async function openInference() {
   telemetry.style.display = 'flex';
   logEvent('Querying on-chain vault state...', 'color:#818cf8;');
   try {
-    var r = await fetch('http://100.52.204.169:8080/query-vault'); var d = await r.json();
+    var r = await fetch('http://100.52.204.169:8081/query-vault'); var d = await r.json();
     if (d.patterns && d.patterns.length) logEvent('Loaded ' + d.patterns.length + ' patterns from vault.', 'color:#34d399;');
     else logEvent('Vault is empty.', 'color:#cbd5e1;');
     openVault();
@@ -325,10 +325,10 @@ async function deployPattern() {
   logEvent('  DEPLOYING CONTRACT', 'color:#818cf8;font-weight:700;');
   logEvent('══════════════════════════════', 'color:#818cf8;');
   try {
-    var vaultResp = await fetch('http://100.52.204.169:8080/query-vault'); var vaultData = await vaultResp.json();
+    var vaultResp = await fetch('http://100.52.204.169:8081/query-vault'); var vaultData = await vaultResp.json();
     var latestId = vaultData.patterns && vaultData.patterns.length > 0 ? vaultData.patterns[0].patternId : null;
     if (!latestId) { logEvent('No patterns to deploy', 'color:#f87171;'); window.appState = 'idle'; return; }
-    var resp = await fetch('http://100.52.204.169:8080/deploy', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({patternId: latestId}) });
+    var resp = await fetch('http://100.52.204.169:8081/deploy', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({patternId: latestId}) });
     var data = await resp.json();
     if (data.success) {
       logEvent('✅ CONTRACT DEPLOYED!', 'color:#34d399;font-weight:700;');
@@ -372,7 +372,7 @@ async function initiatePipeline() {
     await new Promise(function(r) { setTimeout(r, 600); });
     logEvent('✓ 402 challenge accepted — executing storage', 'color:#34d399;');
 
-    var resp = await fetch('http://100.52.204.169:8080/x402/execute', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({prompt: prompt}) });
+    var resp = await fetch('http://100.52.204.169:8081/x402/execute', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({prompt: prompt}) });
     var data = await resp.json();
     lastPipelineData = data;
     window.appState = 'success'; updateCards(null); updateX402Card('SETTLED');
@@ -394,7 +394,7 @@ async function initiatePipeline() {
     // Venice Multimodal
     logEvent('🎨 Venice AI: Generating protocol visualization...', 'color:#60a5fa;');
     try {
-      var mmResp = await fetch('http://100.52.204.169:8080/venice/multimodal', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contractName: prompt.slice(0,60), userPrompt: prompt, vaultPatternsUsed: (data.patterns ? data.patterns.length : 0), contractCode: (data.code || '')}) });
+      var mmResp = await fetch('http://100.52.204.169:8081/venice/multimodal', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contractName: prompt.slice(0,60), userPrompt: prompt, vaultPatternsUsed: (data.patterns ? data.patterns.length : 0), contractCode: (data.code || '')}) });
       var mmData = await mmResp.json();
       lastVeniceData = mmData;
 
@@ -428,7 +428,7 @@ async function initiatePipeline() {
     a2aContent.innerHTML = '🔗 Executing on-chain redelegation...';
     logEvent('→ A2A Coordination: Executing delegateAccess()...', 'color:#34d399;');
     try {
-      var a2aResp = await fetch('http://100.52.204.169:8080/a2a/delegate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+      var a2aResp = await fetch('http://100.52.204.169:8081/a2a/delegate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
       var a2aData = await a2aResp.json();
       lastA2AData = a2aData;
       if (a2aData.success) {
@@ -453,7 +453,7 @@ async function initiatePipeline() {
 }
 
 async function fetchBalance() {
-  try { var r = await fetch('http://100.52.204.169:8080/balance'); var d = await r.json(); document.getElementById('ethBalance').textContent = parseFloat(d.eth).toFixed(4) + ' ETH'; } catch(e) {}
+  try { var r = await fetch('http://100.52.204.169:8081/balance'); var d = await r.json(); document.getElementById('ethBalance').textContent = parseFloat(d.eth).toFixed(4) + ' ETH'; } catch(e) {}
 }
 fetchBalance();
 setInterval(fetchBalance, 30000);

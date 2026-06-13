@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 const { ethers } = require("ethers");
 require("dotenv").config();
 
-const PORT = 8080;
+const PORT = 8081;
 const MIME = { ".html":"text/html", ".js":"application/javascript", ".css":"text/css", ".json":"application/json" };
 const VAULT = "0xA9785f5770AA01184a41f422220d0e05175B622d";
 const USDC = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
@@ -23,6 +23,18 @@ function getVault() {
 }
 
 const server = http.createServer(async (req, res) => {
+  // Allow requests from any origin (Vercel frontend)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-payment-status');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   const url = new URL(req.url, "http://localhost:" + PORT);
 
 
