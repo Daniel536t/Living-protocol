@@ -1,0 +1,18 @@
+nohup: ignoring input
+◇ injected env (8) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Server: http://localhost:8080
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+🎨 Venice Multimodal: Build a DeFi protocol called "Nexus Vault" — an automated yi
+📝 Architect (1453c): I generated a DeFi protocol called "Nexus Vault". The goal is to create an autom...
+🎤 [DEBUG] Request start: 2026-06-10T15:00:44.454Z
+🎤 [DEBUG] Text length: 1453 chars
+🎤 [DEBUG] Text preview: I generated a DeFi protocol called "Nexus Vault". The goal is to create an automated yield aggregato...
+🎤 [DEBUG] Text last 100: ...diagram shows the structure, and my explanation explains the intent and reasoning behind the design.
+🎤 [DEBUG] Request end: 2026-06-10T15:00:49.321Z
+🎤 [DEBUG] Round trip: 4867ms
+🎤 [DEBUG] Audio bytes received: 1573661
+🎤 [DEBUG] Raw response size: 1573661
+🔧 Re-encoding for browser compatibility...
+✅ Re-encoded: 1573661 → 1574496 bytes
+✅ Duration: 98.377143s | Size: 1574496 bytes

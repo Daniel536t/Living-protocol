@@ -1,0 +1,22 @@
+{
+  "name": "living-protocol-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@metamask/abi-utils": "^3.0.0",
+    "@metamask/eth-sig-util": "^8.2.0",
+    "@metamask/smart-accounts-kit": "^1.6.0",
+    "@pinata/sdk": "^2.1.0",
+    "axios": "^1.17.0",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "pinata": "^2.5.6"
+  }
+}

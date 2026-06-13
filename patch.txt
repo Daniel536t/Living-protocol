@@ -1,0 +1,18 @@
+    var resp = await fetch('/build', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({input:prompt}) });
+    var data = await resp.json();
+
+    // Show result FIRST before A2A animation
+    window.appState = 'success'; updateCards(null);
+    if (data.txHash) {
+      var eu = 'https://sepolia.etherscan.io/tx/' + data.txHash;
+      logEvent('Deployment confirmed!', 'text-emerald-400 font-bold');
+      logEvent('<a href="' + eu + '" target="_blank" class="text-blue-400 underline">View on Etherscan ↗</a>', 'text-slate-300');
+      vaultItems.push({ prompt: prompt, time: new Date().toLocaleTimeString(), explorerLink: eu, code: data.code ? data.code.slice(0,800) : '// Generated contract' });
+    } else {
+      logEvent('Pattern generated.', 'text-amber-400');
+      vaultItems.push({ prompt: prompt, time: new Date().toLocaleTimeString(), explorerLink: null, code: data.code ? data.code.slice(0,800) : '// Generated contract' });
+    }
+
+    // THEN run A2A delegation
+    var patternId = 'pattern-' + Date.now();
+    await runA2ADelegation(patternId);

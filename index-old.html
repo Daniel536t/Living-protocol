@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Protocol Builder</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  canvas { position: fixed; top: 0; left: 0; z-index: 0; }
+
+  .overlay {
+    position: fixed; z-index: 10;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px;
+  }
+  .overlay > * { pointer-events: auto; }
+
+  .panel {
+    background: rgba(8,8,20,0.75);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 32px;
+    width: 100%; max-width: 700px;
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    font-size: 2.2rem; font-weight: 800; letter-spacing: -1px;
+    text-align: center; margin-bottom: 4px;
+    background: linear-gradient(135deg, #64ffda, #00b8ff, #7c4dff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1.1;
+  }
+  .tagline {
+    text-align: center; font-size: 0.7rem; letter-spacing: 3px;
+    color: rgba(255,255,255,0.25); margin-bottom: 32px;
+  }
+
+  .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .input-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 16px 20px;
+    color: #fff; font-size: 0.9rem;
+    font-family: 'SF Mono', 'JetBrains Mono', monospace;
+    outline: none; transition: all 0.4s;
+  }
+  .input-row input:focus {
+    border-color: rgba(100,255,218,0.4);
+    box-shadow: 0 0 30px rgba(100,255,218,0.08);
+  }
+  .btn-build {
+    background: linear-gradient(135deg, #64ffda, #00b8ff);
+    border: none; border-radius: 16px;
+    padding: 16px 28px; color: #000;
+    font-weight: 700; font-size: 0.85rem;
+    letter-spacing: 1px; cursor: pointer;
+    transition: all 0.4s; white-space: nowrap;
+  }
+  .btn-build:hover { box-shadow: 0 0 40px rgba(100,255,218,0.4); }
+  .btn-build:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .status-row {
+    display: flex; gap: 10px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .status-item {
+    font-size: 0.6rem; letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.3);
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);
+  }
+  .dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .dot.green { background: #64ffda; box-shadow: 0 0 8px #64ffda; }
+  .dot.blue { background: #00b8ff; box-shadow: 0 0 8px #00b8ff; }
+  .dot.purple { background: #7c4dff; box-shadow: 0 0 8px #7c4dff; }
+
+  /* Result overlay */
+  .result-overlay {
+    position: fixed; z-index: 30;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .result-overlay.show { display: flex; }
+
+  .result-panel {
+    background: rgba(12,12,28,0.95);
+    border: 1px solid rgba(100,255,218,0.2);
+    border-radius: 20px;
+    padding: 32px;
+    width: 90%; max-width: 750px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 0 80px rgba(100,255,218,0.1);
+  }
+
+  .result-panel h3 {
+    color: #64ffda; font-size: 0.65rem;
+    letter-spacing: 3px; margin-bottom: 12px;
+  }
+
+  .code-block {
+    background: #06060e;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 18px;
+    font-family: 'SF Mono', 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: #8ab4f8;
+    line-height: 1.6; max-height: 280px;
+    overflow-y: auto; white-space: pre-wrap;
+    word-break: break-all; margin-bottom: 16px;
+  }
+
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tag {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 500;
+  }
+  .tag.cyan { background: rgba(0,200,255,0.1); color: #00c8ff; border: 1px solid rgba(0,200,255,0.2); }
+  .tag.purple { background: rgba(124,77,255,0.1); color: #7c4dff; border: 1px solid rgba(124,77,255,0.2); }
+  .tag.green { background: rgba(100,255,218,0.1); color: #64ffda; border: 1px solid rgba(100,255,218,0.2); }
+
+  .tx-link {
+    color: #64ffda; text-decoration: none;
+    font-family: 'SF Mono', monospace; font-size: 0.75rem;
+    word-break: break-all;
+  }
+  .tx-link:hover { text-decoration: underline; }
+
+  .close-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; padding: 10px 24px;
+    border-radius: 10px; cursor: pointer;
+    font-size: 0.8rem; margin-top: 8px;
+    transition: all 0.3s;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .loading-row {
+    display: flex; align-items: center; gap: 10px;
+    color: #64ffda; font-size: 0.8rem;
+    padding: 20px 0;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(100,255,218,0.2);
+    border-top-color: #64ffda;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pulse-notify {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%); z-index: 40;
+    background: rgba(100,255,218,0.12);
+    border: 1px solid rgba(100,255,218,0.3);
+    border-radius: 30px; padding: 12px 24px;
+    font-size: 0.75rem; color: #64ffda;
+    letter-spacing: 1px; opacity: 0;
+    transition: opacity 0.5s; pointer-events: none;
+  }
+  .pulse-notify.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="overlay">
+  <div class="panel" id="mainPanel">
+    <div class="logo">Living Protocol Builder</div>
+    <div class="tagline">AI AGENTS · COLLECTIVE INTELLIGENCE · ON-CHAIN KNOWLEDGE</div>
+
+    <div class="input-row">
+      <input type="text" id="userInput" 
+             placeholder="Describe your smart contract..."
+             value="Build me a subscription NFT with staking rewards">
+      <button class="btn-build" id="buildBtn" onclick="realBuild()">BUILD</button>
+    </div>
+
+    <div class="status-row">
+      <span class="status-item"><span class="dot green"></span> NETWORK ONLINE</span>
+      <span class="status-item"><span class="dot blue"></span> VAULT: <span id="vCount">5</span> PATTERNS</span>
+      <span class="status-item"><span class="dot purple"></span> 1SHOT READY</span>
+    </div>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-panel" id="resultPanel">
+    <div class="loading-row" id="loadingRow">
+      <div class="spinner"></div>
+      <span>AGENTS PROCESSING...</span>
+    </div>
+    <div id="resultContent" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="pulse-notify" id="notify"></div>
+
+<!-- Three.js -->
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module" src="scene.js"></script>
+
+<script>
+async function realBuild() {
+  const input = document.getElementById('userInput').value;
+  if (!input) return;
+
+  const overlay = document.getElementById('resultOverlay');
+  const loadingRow = document.getElementById('loadingRow');
+  const resultContent = document.getElementById('resultContent');
+  const btn = document.getElementById('buildBtn');
+  const notify = document.getElementById('notify');
+
+  // Show modal with loading
+  overlay.classList.add('show');
+  loadingRow.style.display = 'flex';
+  resultContent.style.display = 'none';
+  btn.disabled = true;
+
+  // Notify steps
+  const steps = [
+    '⚡ AGENT ALPHA ANALYZING...',
+    '🔍 MATCHING PATTERNS IN VAULT...',
+    '🧬 AI COMPOSING CONTRACT...',
+    '💾 STORING ON-CHAIN...',
+  ];
+  for (const step of steps) {
+    notify.textContent = step;
+    notify.classList.add('show');
+    await sleep(600);
+  }
+
+  try {
+    // Call real backend
+    const res = await fetch('/build', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input }),
+    });
+    const data = await res.json();
+
+    // Build result HTML
+    let html = '';
+
+    // AI Analysis
+    if (data.intent) {
+      html += `<h3>▸ AI ANALYSIS</h3>`;
+      html += `<p style="color:#aaa;font-size:0.8rem;margin-bottom:12px;">
+        <span style="color:#64ffda">Objective:</span> ${data.intent.primaryObjective || '—'}<br>
+        <span style="color:#64ffda">Features:</span> ${(data.intent.secondaryFeatures || []).join(', ') || '—'}<br>
+        <span style="color:#64ffda">Category:</span> ${data.intent.category || '—'}
+      </p>`;
+    }
+
+    // Patterns
+    if (data.patterns && data.patterns.length > 0) {
+      html += `<h3>▸ PATTERNS MATCHED</h3>`;
+      html += `<div class="tag-row">${data.patterns.map(p => `<span class="tag cyan">${p}</span>`).join('')}</div>`;
+    }
+
+    // Generated Code
+    html += `<h3>▸ GENERATED CONTRACT</h3>`;
+    html += `<div class="code-block">${escapeHtml(data.code || '// No code generated')}</div>`;
+
+    // On-chain status
+    html += `<h3>▸ ON-CHAIN STATUS</h3>`;
+    html += `<div class="tag-row">`;
+    if (data.txHash) {
+      html += `<span class="tag green">✓ STORED</span>`;
+      html += `<a class="tx-link" href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank">TX: ${shorten(data.txHash)} ↗</a>`;
+    } else {
+      html += `<span class="tag purple">⚠ Generated (demo mode)</span>`;
+    }
+    html += `<span class="tag cyan">⛽ ${data.gasFee || '0.01 USDC'} via 1Shot</span>`;
+    html += `</div>`;
+
+    // Vault
+    if (data.vaultAddr) {
+      html += `<p style="font-size:0.7rem;color:#555;margin-top:8px;">📦 Vault: <a class="tx-link" href="https://sepolia.etherscan.io/address/${data.vaultAddr}" target="_blank">${data.vaultAddr} ↗</a></p>`;
+    }
+
+    html += `<button class="close-btn" onclick="closeResult()">CLOSE</button>`;
+
+    resultContent.innerHTML = html;
+    loadingRow.style.display = 'none';
+    resultContent.style.display = 'block';
+
+    // Update vault count
+    if (data.txHash) {
+      const vc = document.getElementById('vCount');
+      vc.textContent = parseInt(vc.textContent) + 1;
+    }
+
+    notify.textContent = data.txHash ? '✅ STORED ON SEPOLIA' : '⚠ GENERATED (GAS LOW)';
+  } catch (e) {
+    resultContent.innerHTML = `
+      <h3 style="color:#ff5555;">▸ BUILD FAILED</h3>
+      <p style="color:#aaa;font-size:0.8rem;">${escapeHtml(e.message)}</p>
+      <p style="color:#888;font-size:0.7rem;">Backend may be starting up. Try again.</p>
+      <button class="close-btn" onclick="closeResult()">CLOSE</button>
+    `;
+    loadingRow.style.display = 'none';
+    resultContent.style.display = 'block';
+    notify.textContent = '❌ BUILD FAILED';
+  }
+
+  setTimeout(() => notify.classList.remove('show'), 3000);
+  btn.disabled = false;
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('show');
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function shorten(s) {
+  return s ? s.slice(0,8) + '...' + s.slice(-6) : '';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
