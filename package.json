@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"Static site \u2014 no build needed\"",
+    "start": "echo \"Backend runs on EC2, not Vercel\""
   },
   "keywords": [],
   "author": "",
