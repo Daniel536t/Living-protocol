@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 const { ethers } = require("ethers");
 require("dotenv").config();
 
-const PORT = 8081;
+const PORT = 8080;
 const MIME = { ".html":"text/html", ".js":"application/javascript", ".css":"text/css", ".json":"application/json" };
 const VAULT = "0xA9785f5770AA01184a41f422220d0e05175B622d";
 const USDC = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
