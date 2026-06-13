@@ -1,15 +1,16 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
+    { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/x402/(.*)", "dest": "http://100.52.204.169:8080/x402/$1" },
+    { "src": "/query-vault", "dest": "http://100.52.204.169:8080/query-vault" },
+    { "src": "/venice/(.*)", "dest": "http://100.52.204.169:8080/venice/$1" },
+    { "src": "/a2a/(.*)", "dest": "http://100.52.204.169:8080/a2a/$1" },
+    { "src": "/deploy", "dest": "http://100.52.204.169:8080/deploy" },
+    { "src": "/balance", "dest": "http://100.52.204.169:8080/balance" },
+    { "src": "/build", "dest": "http://100.52.204.169:8080/build" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
