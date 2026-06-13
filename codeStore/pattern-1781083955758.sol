@@ -1,1 +1,0 @@
-contract Loyalty { mapping(address=>uint) public points; address owner; constructor(){owner=msg.sender;} function earn(address u,uint a) external { require(msg.sender==owner); points[u]+=a; } }

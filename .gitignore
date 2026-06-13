@@ -1,0 +1,10 @@
+.env
+node_modules/
+server.log
+*.txt
+codeStore/
+static/
+build/
+.vault-address
+.vault-address-base
+package-lock.json
